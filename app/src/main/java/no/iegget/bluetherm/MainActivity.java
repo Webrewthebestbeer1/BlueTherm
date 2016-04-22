@@ -55,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
+
+        Intent scanIntent = new Intent(this, DeviceScanActivity.class);
+        startActivity(scanIntent);
     }
 
     @Override

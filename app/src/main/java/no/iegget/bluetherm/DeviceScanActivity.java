@@ -5,11 +5,15 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,6 +26,8 @@ public class DeviceScanActivity extends ListActivity {
     private Context mContext = getBaseContext();
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mLeScanner;
+    private ScanSettings mScanSettings;
+    private List<ScanFilter> mScanFilters;
 
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
@@ -30,8 +36,28 @@ public class DeviceScanActivity extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mHandler = new Handler();
+        mContext = getApplicationContext();
         mBluetoothAdapter = ((BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         mLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mScanSettings = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .build();
+        mScanFilters = new ArrayList<>();
+        scanLeDevice(true);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
+            scanLeDevice(false);
+        }
     }
 
     private void scanLeDevice(final boolean enable) {
@@ -46,7 +72,7 @@ public class DeviceScanActivity extends ListActivity {
             }, SCAN_PERIOD);
 
             mScanning = true;
-            mLeScanner.startScan(mScanCallback);
+            mLeScanner.startScan(mScanFilters, mScanSettings, mScanCallback);
         } else {
             mScanning = false;
             mLeScanner.stopScan(mScanCallback);
@@ -56,7 +82,8 @@ public class DeviceScanActivity extends ListActivity {
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
+            Log.i("callbackType", String.valueOf(callbackType));
+            Log.i("result", result.toString());
         }
 
         @Override
