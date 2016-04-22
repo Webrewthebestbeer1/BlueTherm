@@ -13,12 +13,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import no.iegget.bluetherm.adapters.DeviceAdapter;
+import no.iegget.bluetherm.models.BluetoothDevice;
 
 /**
  * Created by iver on 21/04/16.
@@ -33,8 +35,8 @@ public class DeviceScanActivity extends ListActivity {
     private ScanSettings mScanSettings;
     private List<ScanFilter> mScanFilters;
 
-    private ArrayAdapter<String> mArrayAdapter;
-    private List<String> deviceListValues;
+    private DeviceAdapter<String> mArrayAdapter;
+    private List<BluetoothDevice> deviceList;
 
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
@@ -54,8 +56,8 @@ public class DeviceScanActivity extends ListActivity {
         spinner = (ProgressBar) findViewById(R.id.scanningProgress);
         progressText = (TextView) findViewById(R.id.scanningText);
 
-        deviceListValues = new ArrayList<>();
-        mArrayAdapter = new ArrayAdapter<>(this, R.layout.device_row_layout, R.id.deviceListText, deviceListValues);
+        deviceList = new ArrayList<>();
+        mArrayAdapter = new DeviceAdapter<String>(this, R.layout.device_row_layout, R.id.deviceListText, deviceList);
         setListAdapter(mArrayAdapter);
     }
 
@@ -65,7 +67,7 @@ public class DeviceScanActivity extends ListActivity {
             spinner.setVisibility(View.VISIBLE);
         }
         else {
-            progressText.setText("Scanning completed");
+            progressText.setText("Found " + deviceList.size() + " devices");
             spinner.setVisibility(View.GONE);
         }
     }
@@ -115,8 +117,8 @@ public class DeviceScanActivity extends ListActivity {
         public void onScanResult(int callbackType, ScanResult result) {
             Log.i("callbackType", String.valueOf(callbackType));
             Log.i("result", result.toString());
-            if (result.getDevice().getName() != null) {
-                deviceListValues.add(result.getDevice().getName());
+            if (result.getDevice().getName() != null && !deviceList.contains(result)) {
+                deviceList.add(new BluetoothDevice(result.getDevice().getAddress(), result.getDevice().getName()));
                 mArrayAdapter.notifyDataSetChanged();
             }
         }
