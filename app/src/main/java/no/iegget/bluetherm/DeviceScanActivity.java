@@ -67,7 +67,10 @@ public class DeviceScanActivity extends ListActivity {
             spinner.setVisibility(View.VISIBLE);
         }
         else {
-            progressText.setText("Found " + deviceList.size() + " devices");
+            String resultText = "No devices found";
+            if (deviceList.size() == 1)  resultText = "Found 1 device";
+            if (deviceList.size() > 1) resultText = "Found " + deviceList.size() + " devices";
+            progressText.setText(resultText);
             spinner.setVisibility(View.GONE);
         }
     }
@@ -117,9 +120,12 @@ public class DeviceScanActivity extends ListActivity {
         public void onScanResult(int callbackType, ScanResult result) {
             Log.i("callbackType", String.valueOf(callbackType));
             Log.i("result", result.toString());
-            if (result.getDevice().getName() != null && !deviceList.contains(result)) {
-                deviceList.add(new BluetoothDevice(result.getDevice().getAddress(), result.getDevice().getName()));
-                mArrayAdapter.notifyDataSetChanged();
+            if (result.getDevice().getName() != null) {
+                BluetoothDevice device = new BluetoothDevice(result.getDevice().getAddress(), result.getDevice().getName());
+                if (!deviceList.contains(device)) {
+                    deviceList.add(device);
+                    mArrayAdapter.notifyDataSetChanged();
+                }
             }
         }
 
