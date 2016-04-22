@@ -1,6 +1,8 @@
 package no.iegget.bluetherm;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -15,13 +17,16 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +54,7 @@ public class DeviceScanActivity extends ListActivity {
 
     private ProgressBar spinner;
     private TextView progressText;
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,6 +168,7 @@ public class DeviceScanActivity extends ListActivity {
         if (mGatt == null) {
             mGatt = device.connectGatt(this, false, gattCallback);
             scanLeDevice(false);// will stop after first device detection
+            mProgressDialog = ProgressDialog.show(this, "Connecting to " + device.getName(), "Please wait", true);
         }
     }
 
@@ -173,12 +180,20 @@ public class DeviceScanActivity extends ListActivity {
                 case BluetoothProfile.STATE_CONNECTED:
                     Log.i("gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
+                    mProgressDialog.dismiss();
+                    alertConnection();
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     Log.e("gattCallback", "STATE_DISCONNECTED");
+                    mGatt = null;
+                    mProgressDialog.dismiss();
+                    alertNoConnection();
                     break;
                 default:
                     Log.e("gattCallback", "STATE_OTHER");
+                    mGatt = null;
+                    mProgressDialog.dismiss();
+                    alertNoConnection();
             }
 
         }
@@ -200,4 +215,21 @@ public class DeviceScanActivity extends ListActivity {
         }
     };
 
+    private void alertNoConnection() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(DeviceScanActivity.this, "Could not connect to device", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void alertConnection() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(DeviceScanActivity.this, "Connection established", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }
