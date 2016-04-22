@@ -20,7 +20,8 @@ public class DeviceAdapter<S> extends ArrayAdapter<BluetoothDevice> {
     private ViewHolder viewHolder;
 
     private static class ViewHolder {
-        private TextView itemView;
+        private TextView itemName;
+        private TextView itemAddress;
     }
 
     public DeviceAdapter(Context context, int resource, int textViewResourceId, List<BluetoothDevice> objects) {
@@ -34,7 +35,8 @@ public class DeviceAdapter<S> extends ArrayAdapter<BluetoothDevice> {
                     .inflate(R.layout.device_row_layout, parent, false);
 
             viewHolder = new ViewHolder();
-            viewHolder.itemView = (TextView) convertView.findViewById(R.id.deviceListText);
+            viewHolder.itemName = (TextView) convertView.findViewById(R.id.deviceListName);
+            viewHolder.itemAddress = (TextView) convertView.findViewById(R.id.deviceListAddress);
 
             convertView.setTag(viewHolder);
         } else {
@@ -43,9 +45,8 @@ public class DeviceAdapter<S> extends ArrayAdapter<BluetoothDevice> {
 
         BluetoothDevice item = getItem(position);
         if (item!= null) {
-            // My layout has only one TextView
-            // do whatever you want with your string and long
-            viewHolder.itemView.setText(item.getName() + " - " + item.getAddress());
+            viewHolder.itemName.setText(item.getName());
+            viewHolder.itemAddress.setText(item.getAddress());
         }
 
         return convertView;

@@ -8,6 +8,7 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textSize="10pt"
+        android:padding="10dp"
         android:id="@+id/scanningText" />
 
     <ProgressBar

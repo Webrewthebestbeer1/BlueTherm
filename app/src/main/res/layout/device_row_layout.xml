@@ -5,11 +5,26 @@
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/deviceListText"
+        android:id="@+id/deviceListName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="5dp"
         android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:text="ChromecastOnline"/>
+
+    <TextView
+        android:id="@+id/deviceListAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="5dp"
+        android:textSize="12sp"
+        android:textStyle="normal"
+        android:text="00:ff:33:44:dd"/>
+
 
 </LinearLayout>

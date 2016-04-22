@@ -57,7 +57,7 @@ public class DeviceScanActivity extends ListActivity {
         progressText = (TextView) findViewById(R.id.scanningText);
 
         deviceList = new ArrayList<>();
-        mArrayAdapter = new DeviceAdapter<String>(this, R.layout.device_row_layout, R.id.deviceListText, deviceList);
+        mArrayAdapter = new DeviceAdapter<String>(this, R.layout.device_row_layout, R.id.deviceListName, deviceList);
         setListAdapter(mArrayAdapter);
     }
 
