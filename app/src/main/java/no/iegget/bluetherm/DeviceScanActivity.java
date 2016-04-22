@@ -2,7 +2,13 @@ package no.iegget.bluetherm;
 
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -13,6 +19,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -20,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import no.iegget.bluetherm.adapters.DeviceAdapter;
-import no.iegget.bluetherm.models.BluetoothDevice;
 
 /**
  * Created by iver on 21/04/16.
@@ -29,17 +35,17 @@ public class DeviceScanActivity extends ListActivity {
 
     private boolean mScanning;
     private Handler mHandler;
-    private Context mContext = getBaseContext();
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mLeScanner;
     private ScanSettings mScanSettings;
     private List<ScanFilter> mScanFilters;
+    private BluetoothGatt mGatt;
 
     private DeviceAdapter<String> mArrayAdapter;
     private List<BluetoothDevice> deviceList;
 
     // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD = 10_000;
 
     private ProgressBar spinner;
     private TextView progressText;
@@ -49,8 +55,7 @@ public class DeviceScanActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_devicescan);
         mHandler = new Handler();
-        mContext = getApplicationContext();
-        mBluetoothAdapter = ((BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+        mBluetoothAdapter = ((BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         mLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
 
         spinner = (ProgressBar) findViewById(R.id.scanningProgress);
@@ -59,20 +64,25 @@ public class DeviceScanActivity extends ListActivity {
         deviceList = new ArrayList<>();
         mArrayAdapter = new DeviceAdapter<String>(this, R.layout.device_row_layout, R.id.deviceListName, deviceList);
         setListAdapter(mArrayAdapter);
+
+    }
+
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+
+        BluetoothDevice bluetoothDevice = (BluetoothDevice) this.getListAdapter().getItem(position);
+        Log.i("DeviceScanActivity", "clicked on " + bluetoothDevice.getName());
+        connectToDevice(bluetoothDevice);
     }
 
     private void updateFeedback() {
-        if (mScanning) {
-            progressText.setText("Scanning for Bluetooth devices ...");
-            spinner.setVisibility(View.VISIBLE);
-        }
-        else {
-            String resultText = "No devices found";
-            if (deviceList.size() == 1)  resultText = "Found 1 device";
-            if (deviceList.size() > 1) resultText = "Found " + deviceList.size() + " devices";
-            progressText.setText(resultText);
-            spinner.setVisibility(View.GONE);
-        }
+        if (mScanning) spinner.setVisibility(View.VISIBLE);
+        else spinner.setVisibility(View.GONE);
+        String resultText = "No devices found";
+        if (deviceList.size() == 1)  resultText = "Found 1 device";
+        if (deviceList.size() > 1) resultText = "Found " + deviceList.size() + " devices";
+        progressText.setText(resultText);
     }
 
     @Override
@@ -91,6 +101,16 @@ public class DeviceScanActivity extends ListActivity {
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
             scanLeDevice(false);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mGatt == null) {
+            return;
+        }
+        mGatt.close();
+        mGatt = null;
+        super.onDestroy();
     }
 
     private void scanLeDevice(final boolean enable) {
@@ -120,12 +140,10 @@ public class DeviceScanActivity extends ListActivity {
         public void onScanResult(int callbackType, ScanResult result) {
             Log.i("callbackType", String.valueOf(callbackType));
             Log.i("result", result.toString());
-            if (result.getDevice().getName() != null) {
-                BluetoothDevice device = new BluetoothDevice(result.getDevice().getAddress(), result.getDevice().getName());
-                if (!deviceList.contains(device)) {
-                    deviceList.add(device);
-                    mArrayAdapter.notifyDataSetChanged();
-                }
+            if (result.getDevice().getName() != null && !deviceList.contains(result.getDevice())) {
+                deviceList.add(result.getDevice());
+                mArrayAdapter.notifyDataSetChanged();
+                updateFeedback();
             }
         }
 
@@ -137,6 +155,48 @@ public class DeviceScanActivity extends ListActivity {
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
+        }
+    };
+
+    public void connectToDevice(BluetoothDevice device) {
+        if (mGatt == null) {
+            mGatt = device.connectGatt(this, false, gattCallback);
+            scanLeDevice(false);// will stop after first device detection
+        }
+    }
+
+    private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            Log.i("onConnectionStateChange", "Status: " + status);
+            switch (newState) {
+                case BluetoothProfile.STATE_CONNECTED:
+                    Log.i("gattCallback", "STATE_CONNECTED");
+                    gatt.discoverServices();
+                    break;
+                case BluetoothProfile.STATE_DISCONNECTED:
+                    Log.e("gattCallback", "STATE_DISCONNECTED");
+                    break;
+                default:
+                    Log.e("gattCallback", "STATE_OTHER");
+            }
+
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            List<BluetoothGattService> services = gatt.getServices();
+            Log.i("onServicesDiscovered", services.toString());
+            gatt.readCharacteristic(services.get(1).getCharacteristics().get
+                    (0));
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt,
+                                         BluetoothGattCharacteristic
+                                                 characteristic, int status) {
+            Log.i("onCharacteristicRead", characteristic.toString());
+            gatt.disconnect();
         }
     };
 

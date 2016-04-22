@@ -1,5 +1,6 @@
 package no.iegget.bluetherm.adapters;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +11,6 @@ import android.widget.TextView;
 import java.util.List;
 
 import no.iegget.bluetherm.R;
-import no.iegget.bluetherm.models.BluetoothDevice;
 
 /**
  * Created by iver on 22/04/16.
