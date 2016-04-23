@@ -9,11 +9,10 @@ import android.view.ViewGroup;
 /**
  * Created by iver on 23/04/16.
  */
-public class GraphFragment extends Fragment {
+public class GeneralFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_graph, container, false);
+        return inflater.inflate(R.layout.fragment_general, container, false);
     }
-
 }

@@ -4,8 +4,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import no.iegget.bluetherm.GraphFragment;
-import no.iegget.bluetherm.InfoFragment;
+import no.iegget.bluetherm.ChartFragment;
+import no.iegget.bluetherm.GeneralFragment;
 
 /**
  * Created by iver on 23/04/16.
@@ -24,11 +24,11 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
 
         switch (position) {
             case 0:
-                InfoFragment infoFragment = new InfoFragment();
-                return infoFragment;
+                GeneralFragment generalFragment = new GeneralFragment();
+                return generalFragment;
             case 1:
-                GraphFragment graphFragment = new GraphFragment();
-                return graphFragment;
+                ChartFragment chartFragment = new ChartFragment();
+                return chartFragment;
             default:
                 return null;
         }
