@@ -2,13 +2,15 @@ package no.iegget.bluetherm.devices;
 
 import android.bluetooth.BluetoothDevice;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
- * Created by iver on 21/04/16.
+ * Created by iver on 23/04/16.
  */
-public class HM10DS18B20 implements Thermometer {
+public class Dummy implements Thermometer {
     @Override
     public float getTemperature() {
-        return 0;
+        return ThreadLocalRandom.current().nextLong(20, 95);
     }
 
     @Override

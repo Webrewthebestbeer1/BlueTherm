@@ -1,5 +1,6 @@
 package no.iegget.bluetherm;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
@@ -18,6 +19,8 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,6 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import no.iegget.bluetherm.adapters.DeviceAdapter;
+import no.iegget.bluetherm.utils.BleAdvertisedData;
+import no.iegget.bluetherm.utils.BleUtil;
+import no.iegget.bluetherm.utils.Constants;
 
 /**
  * Created by iver on 21/04/16.
@@ -79,7 +85,8 @@ public class DeviceScanActivity extends ListActivity {
 
         BluetoothDevice bluetoothDevice = (BluetoothDevice) this.getListAdapter().getItem(position);
         Log.i("DeviceScanActivity", "clicked on " + bluetoothDevice.getName());
-        connectToDevice(bluetoothDevice);
+        //connectToDevice(bluetoothDevice);
+        alertConnection();
     }
 
     private void updateFeedback() {
@@ -111,11 +118,10 @@ public class DeviceScanActivity extends ListActivity {
 
     @Override
     protected void onDestroy() {
-        if (mGatt == null) {
-            return;
+        if (mGatt != null) {
+            mGatt.close();
+            mGatt = null;
         }
-        mGatt.close();
-        mGatt = null;
         super.onDestroy();
     }
 
@@ -144,9 +150,10 @@ public class DeviceScanActivity extends ListActivity {
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            Log.i("callbackType", String.valueOf(callbackType));
-            Log.i("result", result.toString());
-            if (result.getDevice().getName() != null && !deviceList.contains(result.getDevice())) {
+            //Log.i("callbackType", String.valueOf(callbackType));
+            //Log.i("result", result.toString());
+
+            if (!deviceList.contains(result.getDevice())) {
                 deviceList.add(result.getDevice());
                 mArrayAdapter.notifyDataSetChanged();
                 updateFeedback();
@@ -231,5 +238,14 @@ public class DeviceScanActivity extends ListActivity {
                 Toast.makeText(DeviceScanActivity.this, "Connection established", Toast.LENGTH_SHORT).show();
             }
         });
+        storeAddressInSharedPreferences("00:00:00:00:00:00");
+        finish();
+    }
+
+    private void storeAddressInSharedPreferences(String address) {
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(Constants.DEVICE_ADDRESS, address);
+        editor.commit();
     }
 }

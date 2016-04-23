@@ -2,8 +2,10 @@ package no.iegget.bluetherm;
 
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -14,10 +16,11 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import no.iegget.bluetherm.utils.Constants;
+
 public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter mBluetoothAdapter;
-    private int REQUEST_ENABLE_BT = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,8 +37,14 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        // check if bluetooth adapter is present on device
         if (mBluetoothAdapter == null) {
             Log.w("MainActivity", "no bluetooth available");
             new AlertDialog.Builder(this)
@@ -51,13 +60,21 @@ public class MainActivity extends AppCompatActivity {
                     .show();
 
         }
+        // check if bluetooth adapter is enabled
         else if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
         }
-
-        Intent scanIntent = new Intent(this, DeviceScanActivity.class);
-        startActivity(scanIntent);
+        else if (mBluetoothAdapter.isEnabled()) {
+            // use device from shared preferences
+            if (!getAddressFromSharedPreferences().equals(Constants.NO_ADDRESS)) {
+                Log.i("Main", "using address " + getAddressFromSharedPreferences());
+            // scan for devices
+            } else {
+                Log.i("Main", "no device in shared preferences. starting scan");
+                Intent scanIntent = new Intent(this, DeviceScanActivity.class);
+                startActivityForResult(scanIntent, Constants.SCAN_FOR_DEVICES);
+            }
+        }
     }
 
     @Override
@@ -70,6 +87,11 @@ public class MainActivity extends AppCompatActivity {
     private void exitApplication() {
         this.finish();
         System.exit(0);
+    }
+
+    private String getAddressFromSharedPreferences() {
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        return sharedPref.getString(Constants.DEVICE_ADDRESS, Constants.NO_ADDRESS);
     }
 
     @Override
