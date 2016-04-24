@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
             // use device from shared preferences
             if (!getAddressFromSharedPreferences().equals(Constants.NO_ADDRESS)) {
                 Log.i("Main", "using address " + getAddressFromSharedPreferences());
+                startService(new Intent(this, BluetoothService.class));
             // scan for devices
             } else {
                 Log.i("Main", "no device in shared preferences. starting scan");

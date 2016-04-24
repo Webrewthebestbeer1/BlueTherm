@@ -5,4 +5,10 @@
     <string name="desired_temperature">Desired temperature:</string>
     <string name="disconnect">Disconnect</string>
     <string name="forget_device">Forget device</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="device">Device:</string>
+    <string name="connection_status">Connection status:</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
 </resources>
