@@ -57,7 +57,7 @@ public class ChartFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.i("ChartFragment", "entry value: " + entry.getVal() + " at: " + entry.getXIndex());
+                //Log.i("ChartFragment", "entry value: " + entry.getVal() + " at: " + entry.getXIndex());
                 chart.getLineData().addXValue(String.valueOf(entry.getXIndex()));
                 chart.getLineData().addEntry(entry, 0);
                 chart.notifyDataSetChanged();

@@ -11,4 +11,6 @@
     <string name="connection_status">Connection status:</string>
     <string name="connected">Connected</string>
     <string name="disconnected">Disconnected</string>
+    <string name="connecting">Connecting</string>
+    <string name="unknown">Unknown</string>
 </resources>
