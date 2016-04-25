@@ -1,6 +1,8 @@
 package no.iegget.bluetherm;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,6 +19,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 import no.iegget.bluetherm.adapters.PagerAdapter;
 import no.iegget.bluetherm.utils.Constants;
@@ -123,10 +126,41 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch(id) {
+            case R.id.action_disconnect:
+                break;
+            case R.id.action_forget_device:
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Forget device")
+                        .setMessage("This will delete all data and restart the app. Do you want to continue?")
+                        .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        })
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SharedPreferences sharedPref = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+                                sharedPref.edit().remove(Constants.DEVICE_ADDRESS).commit();
+                                Intent mStartActivity = new Intent(getApplicationContext(), MainActivity.class);
+                                int mPendingIntentId = 123456;
+                                PendingIntent mPendingIntent = PendingIntent.getActivity(getApplicationContext(), mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                                AlarmManager mgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+                                stopService(new Intent(getApplicationContext(), BluetoothService.class));
+                                System.exit(0);
+                            }
+                        })
+                        .show();
+                break;
+            case R.id.action_sound:
+                break;
+            default:
+                break;
         }
+
 
         return super.onOptionsItemSelected(item);
     }

@@ -13,4 +13,11 @@
     <string name="disconnected">Disconnected</string>
     <string name="connecting">Connecting</string>
     <string name="unknown">Unknown</string>
+    <string name="change_desired_temperature">Change desired temperature</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="set_alarm_sound">Set alarm sound</string>
+    <string name="temperature_reached">Temperature reached:</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="alarm">Alarm</string>
 </resources>
