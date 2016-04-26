@@ -1,43 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical|center_horizontal"
+    android:background="@color/colorPrimaryDark">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/alarm"
+        android:textSize="40sp"
+        android:gravity="center_horizontal"
+        android:textColor="@color/colorLight"/>
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="50dp">
 
         <TextView
-            android:gravity="left"
-            android:layout_width="wrap_content"
+            android:gravity="center"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/temperature_reached"
-            android:textAppearance="@style/GeneralFont"/>
-
-        <TextView
-            android:gravity="right"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/desired_temperature"
-            android:layout_weight="1"
-            android:textAppearance="@style/GeneralFont"/>
+            android:textSize="30sp"
+            android:textColor="@color/colorLight"/>
 
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center">
+        android:gravity="center"
+        android:padding="50dp">
 
-        <Button
-            android:layout_width="wrap_content"
+        <no.iegget.bluetherm.utils.SlideButton
+            android:id="@+id/dismiss"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/dismiss"
-            android:gravity="center"
-            android:id="@+id/dismiss"/>
+            android:clickable="false"
+            android:max="100"
+            android:progressDrawable="@android:color/transparent"
+            android:thumb="@mipmap/ic_fa_arrow_circle_o_right_1024_0_eeeeee_none" >
+        </no.iegget.bluetherm.utils.SlideButton>
+
     </LinearLayout>
 
 </LinearLayout>

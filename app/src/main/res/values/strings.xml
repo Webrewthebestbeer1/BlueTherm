@@ -17,7 +17,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="set_alarm_sound">Set alarm sound</string>
-    <string name="temperature_reached">Temperature reached:</string>
+    <string name="temperature_reached">Temperature reached</string>
     <string name="dismiss">Dismiss</string>
     <string name="alarm">Alarm</string>
 </resources>
