@@ -42,7 +42,6 @@ public class GeneralFragment extends Fragment {
     private TextView deviceText;
     private TextView connectionText;
     private TextView currentTemperature;
-    private TextView desiredTemperature;
     private float setDesiredTemperature;
     private Switch alarmSwitch;
 
@@ -81,14 +80,12 @@ public class GeneralFragment extends Fragment {
             }
         });
 
-        desiredTemperature = (TextView) view.findViewById(R.id.desired_temperature);
-        desiredTemperature.setText(String.valueOf(setDesiredTemperature));
-
         currentTemperature = (TextView) view.findViewById(R.id.current_temperature);
         deviceText = (TextView) view.findViewById(R.id.device);
         connectionText = (TextView) view.findViewById(R.id.connection_status);
 
         changeDesiredTemperatureButton = (Button) view.findViewById(R.id.change_desired_temperature);
+        changeDesiredTemperatureButton.setText(String.valueOf(setDesiredTemperature));
         changeDesiredTemperatureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -124,7 +121,7 @@ public class GeneralFragment extends Fragment {
         SharedPreferences sharedPref = getActivity().getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
         sharedPref.edit().putFloat(Constants.DESIRED_TEMPERATURE, temperature).commit();
         setDesiredTemperature = temperature;
-        desiredTemperature.setText(String.valueOf(setDesiredTemperature));
+        changeDesiredTemperatureButton.setText(String.valueOf(setDesiredTemperature));
         if (mBound) mService.setDesiredTemperature(setDesiredTemperature);
     }
 

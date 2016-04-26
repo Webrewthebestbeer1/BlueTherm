@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -91,29 +92,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/desired_temperature"
-            android:textAppearance="@style/GeneralFont"/>
-
-        <TextView
-            android:gravity="right"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/desired_temperature"
-            android:layout_weight="1"
-            android:textAppearance="@style/GeneralFont"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp">
-
-        <TextView
-            android:gravity="left"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/alarm"
             android:textAppearance="@style/GeneralFont"/>
 
@@ -126,18 +104,43 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dip"
-        android:layout_weight="1"
-        android:gravity="center|bottom"
-        android:orientation="horizontal"
-        android:padding="20dp">
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal|center_vertical"
+        android:padding="50dp"
+        android:orientation="vertical">
 
-        <Button
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/change_desired_temperature"
-            android:id="@+id/change_desired_temperature"/>
+            android:gravity="center_vertical|center_horizontal"
+            android:padding="10dp">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/desired_temperature"
+                android:textAppearance="@style/GeneralFont"
+                android:textSize="20sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|center_horizontal"
+            android:padding="10dp">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/change_desired_temperature"
+                android:background="@drawable/ripple"
+                android:textSize="40sp"
+                android:height="60dp"
+                android:width="200dp"
+                tools:text="67.0"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
