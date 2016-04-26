@@ -57,14 +57,18 @@ public class ChartFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                //Log.i("ChartFragment", "entry value: " + entry.getVal() + " at: " + entry.getXIndex());
+                Log.i("ChartFragment", "entry value: " + entry.getVal() + " at: " + entry.getXIndex());
                 chart.getLineData().addXValue(String.valueOf(entry.getXIndex()));
                 chart.getLineData().addEntry(entry, 0);
                 chart.notifyDataSetChanged();
                 chart.setVisibleXRangeMaximum(Constants.VISIBLE_ENTRIES);
-                chart.moveViewToX(chart.getLineData().getXValCount() - (Constants.VISIBLE_ENTRIES + 1));
+                chart.moveViewToX(chart.getLineData().getXValCount() - (Constants.VISIBLE_ENTRIES));
             }
         });
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
 }

@@ -14,13 +14,15 @@ import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.util.CircularArray;
 import android.util.Log;
 
 import com.github.mikephil.charting.data.Entry;
 
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,11 +42,13 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
     BluetoothDevice device;
     String deviceAddress;
     Thermometer mThermometer;
-    List<Entry> entries;
+    CircularFifoQueue<Entry> entries;
+    CircularFifoQueue<Integer> xValues;
     int xVal = 0;
     private float desiredTemperature;
     private boolean alarmActivated = false;
     private boolean alarmEnabled;
+    private boolean ascending;
 
     private final IBinder mBinder = new LocalBinder();
 
@@ -56,12 +60,16 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         deviceAddress = sharedPref.getString(Constants.DEVICE_ADDRESS, Constants.NO_ADDRESS);
         alarmEnabled = sharedPref.getBoolean(Constants.ALARM_ENABLED, false);
+        ascending = sharedPref.getBoolean(Constants.TEMP_ASCENDING, true);
         setDesiredTemperature(sharedPref.getFloat(Constants.DESIRED_TEMPERATURE, 50F));
         mBluetoothAdapter = ((BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
         device.createBond();
         mThermometer = new Dummy(device);
         registerReceiver(mPairReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
+
+        entries = new CircularFifoQueue<>(Constants.VISIBLE_ENTRIES);
+        xValues = new CircularFifoQueue<>(Constants.VISIBLE_ENTRIES);
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
@@ -126,23 +134,44 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
         alarmActivated = false;
     }
 
+    public void setAscending(boolean ascending) {
+        this.ascending = ascending;
+    }
+
     private void readThermometer() {
-        Entry entry = new Entry(mThermometer.getTemperature(), xVal++);
-        if (entry.getVal() > desiredTemperature && !alarmActivated && alarmEnabled) {
-            Intent intent = new Intent(this, AlarmReceiver.class);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                    this.getApplicationContext(),
-                    234234234,
-                    intent,
-                    0
-            );
-            AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-            alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent);
-            alarmActivated = true;
-            Log.i("BluetoothService", "alarm activated");
+        float temp = mThermometer.getTemperature();
+        int x = xVal++;
+        Entry entry = new Entry(temp, x);
+        entries.add(entry);
+        xValues.add(x);
+        if (entry.getVal() > desiredTemperature && !alarmActivated && alarmEnabled && ascending) {
+            startAlarm();
+        } else if (entry.getVal() < desiredTemperature && !alarmActivated && alarmEnabled && !ascending) {
+            startAlarm();
         }
         EventBus.getDefault().post(entry);
     }
 
+    private void startAlarm() {
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this.getApplicationContext(),
+                234234234,
+                intent,
+                0
+        );
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent);
+        alarmActivated = true;
+        Log.i("BluetoothService", "alarm activated");
+    }
+
+    public List<Entry> getEntriesAsList() {
+        return new ArrayList<>(this.entries);
+    }
+
+    public List<Integer> getXValuesAsList() {
+        return new ArrayList<>(this.xValues);
+    }
 
 }

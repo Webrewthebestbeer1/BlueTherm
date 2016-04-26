@@ -16,6 +16,7 @@ public class SlideButton extends SeekBar {
 
     public SlideButton(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setMax(100);
     }
 
     @Override
@@ -32,10 +33,12 @@ public class SlideButton extends SeekBar {
             } else
                 return false;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            if (getProgress() > 70)
+            if (getProgress() > 70) {
+                setProgress(100);
                 handleSlide();
-
-            setProgress(0);
+            } else {
+                setProgress(0);
+            }
         } else
             super.onTouchEvent(event);
 

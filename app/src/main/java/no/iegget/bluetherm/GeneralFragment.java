@@ -1,8 +1,6 @@
 package no.iegget.bluetherm;
 
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -28,7 +27,6 @@ import com.github.mikephil.charting.data.Entry;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.w3c.dom.Text;
 
 import no.iegget.bluetherm.utils.BluetoothConnectionEvent;
 import no.iegget.bluetherm.utils.Constants;
@@ -44,6 +42,7 @@ public class GeneralFragment extends Fragment {
     private TextView currentTemperature;
     private float setDesiredTemperature;
     private Switch alarmSwitch;
+    private RadioGroup tempDirection;
 
     private BluetoothService mService;
     private boolean mBound = false;
@@ -70,6 +69,16 @@ public class GeneralFragment extends Fragment {
 
         final SharedPreferences sharedPref = getActivity().getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
         setDesiredTemperature = sharedPref.getFloat(Constants.DESIRED_TEMPERATURE, 50F);
+
+        tempDirection = (RadioGroup) view.findViewById(R.id.temp_direction);
+        tempDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                sharedPref.edit().putBoolean(Constants.TEMP_ASCENDING, checkedId == R.id.ascending).commit();
+                if (mBound) mService.setAscending(checkedId == R.id.ascending);
+            }
+        });
+        tempDirection.check(sharedPref.getBoolean(Constants.TEMP_ASCENDING, true) ? R.id.ascending : R.id.descending);
 
         alarmSwitch = (Switch) view.findViewById(R.id.alarm_activated);
         alarmSwitch.setChecked(sharedPref.getBoolean(Constants.ALARM_ENABLED, false));
@@ -114,6 +123,13 @@ public class GeneralFragment extends Fragment {
 
         EventBus.getDefault().register(this);
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        final SharedPreferences sharedPref = getActivity().getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        alarmSwitch.setChecked(sharedPref.getBoolean(Constants.ALARM_ENABLED, false));
     }
 
     private void setDesiredTemperature(float temperature) {

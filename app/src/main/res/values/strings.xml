@@ -20,4 +20,6 @@
     <string name="temperature_reached">Temperature reached</string>
     <string name="dismiss">Dismiss</string>
     <string name="alarm">Alarm</string>
+    <string name="descending">Descending</string>
+    <string name="ascending">Ascending</string>
 </resources>

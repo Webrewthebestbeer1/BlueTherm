@@ -12,9 +12,6 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import java.io.IOException;
 
@@ -63,6 +60,7 @@ public class AlarmActivity extends AppCompatActivity {
             @Override
             public void handleSlide() {
                 Intent mainIntent = new Intent(getApplicationContext(), MainActivity.class);
+                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(mainIntent);
                 KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
                 KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");

@@ -1,7 +1,5 @@
 package no.iegget.bluetherm;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -18,12 +16,9 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
@@ -35,8 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import no.iegget.bluetherm.adapters.DeviceAdapter;
-import no.iegget.bluetherm.utils.BleAdvertisedData;
-import no.iegget.bluetherm.utils.BleUtil;
 import no.iegget.bluetherm.utils.Constants;
 
 /**
