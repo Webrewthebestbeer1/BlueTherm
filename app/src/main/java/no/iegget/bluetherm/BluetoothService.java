@@ -161,7 +161,7 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
                 0
         );
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
         alarmActivated = true;
         Log.i("BluetoothService", "alarm activated");
     }
