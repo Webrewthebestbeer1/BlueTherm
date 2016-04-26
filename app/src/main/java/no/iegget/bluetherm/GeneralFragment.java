@@ -94,7 +94,7 @@ public class GeneralFragment extends Fragment {
         connectionText = (TextView) view.findViewById(R.id.connection_status);
 
         changeDesiredTemperatureButton = (Button) view.findViewById(R.id.change_desired_temperature);
-        changeDesiredTemperatureButton.setText(String.valueOf(setDesiredTemperature));
+        changeDesiredTemperatureButton.setText(String.format(java.util.Locale.US, getResources().getString(R.string.degrees_celsius), setDesiredTemperature));
         changeDesiredTemperatureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -137,7 +137,7 @@ public class GeneralFragment extends Fragment {
         SharedPreferences sharedPref = getActivity().getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
         sharedPref.edit().putFloat(Constants.DESIRED_TEMPERATURE, temperature).commit();
         setDesiredTemperature = temperature;
-        changeDesiredTemperatureButton.setText(String.valueOf(setDesiredTemperature));
+        changeDesiredTemperatureButton.setText(String.format(java.util.Locale.US, getResources().getString(R.string.degrees_celsius), setDesiredTemperature));
         if (mBound) mService.setDesiredTemperature(setDesiredTemperature);
     }
 
@@ -146,7 +146,7 @@ public class GeneralFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                currentTemperature.setText(String.valueOf(entry.getVal()));
+                currentTemperature.setText(String.format(java.util.Locale.US, getResources().getString(R.string.degrees_celsius), entry.getVal()));
             }
         });
     }
