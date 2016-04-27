@@ -3,9 +3,9 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="no.iegget.bluetherm.MainActivity">
     <item
-        android:id="@+id/action_disconnect"
+        android:id="@+id/action_exit"
         android:orderInCategory="100"
-        android:title="@string/disconnect"
+        android:title="@string/exit"
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_forget_device"
