@@ -25,10 +25,12 @@ import no.iegget.bluetherm.utils.Constants;
 public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter mBluetoothAdapter;
+    private Intent bluetoothServiceIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        bluetoothServiceIntent = new Intent(this, BluetoothService.class);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -90,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
             // use device from shared preferences
             if (!getAddressFromSharedPreferences().equals(Constants.NO_ADDRESS)) {
                 Log.i("Main", "using address " + getAddressFromSharedPreferences());
-                startService(new Intent(this, BluetoothService.class));
+                startService(bluetoothServiceIntent);
             // scan for devices
             } else {
                 Log.i("Main", "no device in shared preferences. starting scan");
@@ -125,7 +127,9 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         switch(id) {
-            case R.id.action_disconnect:
+            case R.id.action_exit:
+                stopService(bluetoothServiceIntent);
+                exitApplication();
                 break;
             case R.id.action_forget_device:
                 new AlertDialog.Builder(MainActivity.this)
