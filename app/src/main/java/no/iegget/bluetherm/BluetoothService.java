@@ -5,16 +5,19 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
-import android.content.BroadcastReceiver;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.util.CircularArray;
 import android.util.Log;
 
 import com.github.mikephil.charting.data.Entry;
@@ -28,8 +31,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import no.iegget.bluetherm.devices.Dummy;
-import no.iegget.bluetherm.devices.Thermometer;
 import no.iegget.bluetherm.utils.BluetoothConnectionEvent;
 import no.iegget.bluetherm.utils.Constants;
 
@@ -38,24 +39,32 @@ import no.iegget.bluetherm.utils.Constants;
  */
 public class BluetoothService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    BluetoothAdapter mBluetoothAdapter;
-    BluetoothDevice device;
-    String deviceAddress;
-    Thermometer mThermometer;
-    CircularFifoQueue<Entry> entries;
-    CircularFifoQueue<Integer> xValues;
+    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothDevice device;
+    private BluetoothGatt mGatt;
+    private BluetoothGattService mGattService;
+    private String deviceAddress;
+    private CircularFifoQueue<Entry> entries;
+    private CircularFifoQueue<Integer> xValues;
     int xVal = 0;
     private float desiredTemperature;
     private boolean alarmActivated = false;
     private boolean alarmEnabled;
     private boolean ascending;
+    private final String TAG = getClass().getSimpleName();
+
+    private final String COMMUNICATION_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    private final String TX_RX_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+    private final String GET_TEMPERATURE_COMMAND = "AT+TEMP?";
+    private final String AT_RESPONSE = "OK+Get:";
+    private BluetoothGattCharacteristic characteristicComm;
 
     private final IBinder mBinder = new LocalBinder();
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i("BluetoothService", "started");
+        Log.i(TAG, "started");
         SharedPreferences sharedPref = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         deviceAddress = sharedPref.getString(Constants.DEVICE_ADDRESS, Constants.NO_ADDRESS);
@@ -64,31 +73,24 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
         setDesiredTemperature(sharedPref.getFloat(Constants.DESIRED_TEMPERATURE, 50F));
         mBluetoothAdapter = ((BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
-        device.createBond();
-        mThermometer = new Dummy(device);
-        registerReceiver(mPairReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
+        connectToDevice(device);
 
         entries = new CircularFifoQueue<>(Constants.VISIBLE_ENTRIES);
         xValues = new CircularFifoQueue<>(Constants.VISIBLE_ENTRIES);
+    }
 
+    private void startTemperatureFetching() {
+        Log.i(TAG, "staring temp fetching");
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                readThermometer();
+                sendCommand(GET_TEMPERATURE_COMMAND);
             }
         }, 0, Constants.READING_TICK, TimeUnit.MILLISECONDS);
     }
 
-    private final BroadcastReceiver mPairReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
 
-            if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
-                postBluetoothConnectionEvent();
-            }
-        }
-    };
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -98,29 +100,86 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
     }
 
     public class LocalBinder extends Binder {
-        BluetoothService getService() {
+        public BluetoothService getService() {
             return BluetoothService.this;
         }
     }
 
-    private void postBluetoothConnectionEvent() {
-        String bondState;
-        switch (device.getBondState()) {
-            case BluetoothDevice.BOND_NONE:
-                bondState = getResources().getString(R.string.disconnected);
-                break;
-            case BluetoothDevice.BOND_BONDING:
-                bondState = getResources().getString(R.string.connecting);
-                break;
-            case BluetoothDevice.BOND_BONDED:
-                bondState = getResources().getString(R.string.connected);
-                break;
-            default:
-                bondState = getResources().getString(R.string.unknown);
-                break;
+    public void connectToDevice(BluetoothDevice device) {
+        if (mGatt == null) {
+            mGatt = device.connectGatt(this, false, gattCallback);
         }
-        EventBus.getDefault().post(new BluetoothConnectionEvent(device.getName(), bondState));
     }
+
+    private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+        String bondState;
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            Log.i("onConnectionStateChange", "Status: " + status);
+            switch (newState) {
+                case BluetoothProfile.STATE_CONNECTED:
+                    bondState = getResources().getString(R.string.connected);
+                    gatt.discoverServices();
+                    break;
+                case BluetoothProfile.STATE_DISCONNECTED:
+                    bondState = getResources().getString(R.string.disconnected);
+                    mGatt = null;
+                    break;
+                default:
+                    bondState = getResources().getString(R.string.unknown);
+                    mGatt = null;
+            }
+            EventBus.getDefault().post(new BluetoothConnectionEvent(device.getName(), bondState));
+
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            List<BluetoothGattService> services = gatt.getServices();
+            Log.i("onServicesDiscovered", services.toString());
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                for (BluetoothGattService service : gatt.getServices()) {
+                    if (COMMUNICATION_SERVICE_UUID.equalsIgnoreCase(service.getUuid().toString())) {
+                        mGattService = service;
+                        Log.i(TAG, "found service " + service.getUuid().toString());
+                        for (BluetoothGattCharacteristic characteristic : mGattService.getCharacteristics()) {
+                            if (characteristic.getUuid().toString().equalsIgnoreCase(TX_RX_UUID)) {
+                                Log.i(TAG, "found comm characteristic");
+                                characteristicComm = characteristic;
+                                setCharacteristicNotification(characteristicComm, true);
+                                startTemperatureFetching();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt,
+                                         BluetoothGattCharacteristic
+                                                 characteristic, int status) {
+            Log.w("onCharacteristicRead", characteristic.toString());
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt,
+                                            BluetoothGattCharacteristic characteristic) {
+            String response = new String(characteristic.getValue());
+            Log.i(TAG, response);
+            if (response.startsWith(AT_RESPONSE)) {
+                String value = response.substring(AT_RESPONSE.length());
+                try {
+                    float temperature = Float.valueOf(value);
+                    updateTemperature(temperature);
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+
+        }
+    };
 
     @Nullable
     @Override
@@ -130,7 +189,7 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
 
     public void setDesiredTemperature(float temperature) {
         this.desiredTemperature = temperature;
-        Log.i("BluetoothService", "temp set to: " + desiredTemperature);
+        Log.i(TAG, "temp set to: " + desiredTemperature);
         alarmActivated = false;
     }
 
@@ -138,10 +197,9 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
         this.ascending = ascending;
     }
 
-    private void readThermometer() {
-        float temp = mThermometer.getTemperature();
+    private void updateTemperature(float temperature) {
         int x = xVal++;
-        Entry entry = new Entry(temp, x);
+        Entry entry = new Entry(temperature, x);
         entries.add(entry);
         xValues.add(x);
         if (entry.getVal() > desiredTemperature && !alarmActivated && alarmEnabled && ascending) {
@@ -163,7 +221,7 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
         alarmActivated = true;
-        Log.i("BluetoothService", "alarm activated");
+        Log.i(TAG, "alarm activated");
     }
 
     public List<Entry> getEntriesAsList() {
@@ -172,6 +230,30 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
 
     public List<Integer> getXValuesAsList() {
         return new ArrayList<>(this.xValues);
+    }
+
+    public void writeCharacteristic(BluetoothGattCharacteristic characteristic) {
+        if (mBluetoothAdapter == null || mGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        Log.i(TAG, "writing " + characteristic.getStringValue(0));
+        mGatt.writeCharacteristic(characteristic);
+    }
+
+    public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
+                                              boolean enabled) {
+        if (mBluetoothAdapter == null || mGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mGatt.setCharacteristicNotification(characteristic, enabled);
+    }
+
+    private void sendCommand(String cmd) {
+        characteristicComm.setValue(GET_TEMPERATURE_COMMAND.getBytes());
+        writeCharacteristic(characteristicComm);
+
     }
 
 }

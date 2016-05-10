@@ -78,7 +78,7 @@ public class DeviceScanActivity extends ListActivity {
 
         BluetoothDevice bluetoothDevice = (BluetoothDevice) this.getListAdapter().getItem(position);
         Log.i("DeviceScanActivity", "clicked on " + bluetoothDevice.getName());
-        //connectToDevice(bluetoothDevice);
+        connectToDevice(bluetoothDevice);
         alertConnection();
     }
 
@@ -225,13 +225,14 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     private void alertConnection() {
+        scanLeDevice(false);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Toast.makeText(DeviceScanActivity.this, "Connection established", Toast.LENGTH_SHORT).show();
             }
         });
-        storeAddressInSharedPreferences("00:00:00:00:00:00");
+        storeAddressInSharedPreferences(mGatt.getDevice().getAddress());
         finish();
     }
 
