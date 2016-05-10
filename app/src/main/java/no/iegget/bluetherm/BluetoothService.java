@@ -57,6 +57,7 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
     private final String TX_RX_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
     private final String GET_TEMPERATURE_COMMAND = "AT+TEMP?";
     private final String AT_RESPONSE = "OK+Get:";
+    private final float ERROR_TEMPERATURE = 85F;
     private BluetoothGattCharacteristic characteristicComm;
 
     private final IBinder mBinder = new LocalBinder();
@@ -170,11 +171,15 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
             Log.i(TAG, response);
             if (response.startsWith(AT_RESPONSE)) {
                 String value = response.substring(AT_RESPONSE.length());
+                float temperature = Float.MAX_VALUE;
                 try {
-                    float temperature = Float.valueOf(value);
-                    updateTemperature(temperature);
+                    temperature = Float.valueOf(value);
                 } catch (NumberFormatException e) {
                     Log.e(TAG, e.getMessage());
+                } finally {
+                    if (temperature != Float.MAX_VALUE && temperature != ERROR_TEMPERATURE) {
+                        updateTemperature(temperature);
+                    }
                 }
             }
 
@@ -251,7 +256,7 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
     }
 
     private void sendCommand(String cmd) {
-        characteristicComm.setValue(GET_TEMPERATURE_COMMAND.getBytes());
+        characteristicComm.setValue(cmd.getBytes());
         writeCharacteristic(characteristicComm);
 
     }
