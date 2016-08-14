@@ -1,4 +1,4 @@
-package no.iegget.bluetherm.adapters;
+package no.iegget.bluetherm.ui;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -12,9 +12,6 @@ import java.util.List;
 
 import no.iegget.bluetherm.R;
 
-/**
- * Created by iver on 22/04/16.
- */
 public class DeviceAdapter<S> extends ArrayAdapter<BluetoothDevice> {
 
     private ViewHolder viewHolder;

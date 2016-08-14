@@ -29,10 +29,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DeviceScanActivity"
+            android:name=".ui.DeviceScanActivity"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".AlarmActivity"
+            android:name=".ui.AlarmActivity"
             android:screenOrientation="portrait"/>
         <service android:name=".BluetoothService" />
         <receiver android:name=".AlarmReceiver"/>

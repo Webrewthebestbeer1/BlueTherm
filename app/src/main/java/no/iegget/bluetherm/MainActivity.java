@@ -19,7 +19,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import no.iegget.bluetherm.adapters.PagerAdapter;
+import no.iegget.bluetherm.ui.view.PagerAdapter;
+import no.iegget.bluetherm.ui.DeviceScanActivity;
 import no.iegget.bluetherm.utils.Constants;
 
 public class MainActivity extends AppCompatActivity {

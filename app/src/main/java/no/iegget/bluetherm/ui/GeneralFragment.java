@@ -1,4 +1,4 @@
-package no.iegget.bluetherm;
+package no.iegget.bluetherm.ui;
 
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -28,12 +28,11 @@ import com.github.mikephil.charting.data.Entry;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import no.iegget.bluetherm.BluetoothService;
+import no.iegget.bluetherm.R;
 import no.iegget.bluetherm.utils.BluetoothConnectionEvent;
 import no.iegget.bluetherm.utils.Constants;
 
-/**
- * Created by iver on 23/04/16.
- */
 public class GeneralFragment extends Fragment {
 
     private Button changeDesiredTemperatureButton;

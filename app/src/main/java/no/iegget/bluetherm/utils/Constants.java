@@ -1,8 +1,5 @@
 package no.iegget.bluetherm.utils;
 
-/**
- * Created by iver on 23/04/16.
- */
 public class Constants {
 
     public static final String DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -15,6 +12,6 @@ public class Constants {
     public static final int REQUEST_ENABLE_BT = 1;
     public static final int SCAN_FOR_DEVICES = 2;
     public static final int REQUEST_RINGTONE = 999;
-    public static final int READING_TICK = 2_000; // in milliseconds
+    public static final int READING_TICK_MS = 2_000;
     public static final int VISIBLE_ENTRIES = 30;
 }

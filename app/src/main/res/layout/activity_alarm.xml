@@ -37,7 +37,7 @@
         android:gravity="center"
         android:padding="50dp">
 
-        <no.iegget.bluetherm.utils.SlideButton
+        <no.iegget.bluetherm.ui.view.SlideButton
             android:id="@+id/dismiss"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -45,7 +45,7 @@
             android:max="100"
             android:progressDrawable="@android:color/transparent"
             android:thumb="@mipmap/ic_fa_arrow_circle_o_right_1024_0_eeeeee_none" >
-        </no.iegget.bluetherm.utils.SlideButton>
+        </no.iegget.bluetherm.ui.view.SlideButton>
 
     </LinearLayout>
 

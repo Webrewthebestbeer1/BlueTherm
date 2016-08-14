@@ -1,14 +1,11 @@
 package no.iegget.bluetherm;
 
-import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.PowerManager;
 
-/**
- * Created by iver on 24/04/16.
- */
+import no.iegget.bluetherm.ui.AlarmActivity;
+
 public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {

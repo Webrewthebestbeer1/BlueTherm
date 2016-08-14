@@ -1,4 +1,4 @@
-package no.iegget.bluetherm;
+package no.iegget.bluetherm.ui;
 
 import android.app.ListActivity;
 import android.app.ProgressDialog;
@@ -29,12 +29,9 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-import no.iegget.bluetherm.adapters.DeviceAdapter;
+import no.iegget.bluetherm.R;
 import no.iegget.bluetherm.utils.Constants;
 
-/**
- * Created by iver on 21/04/16.
- */
 public class DeviceScanActivity extends ListActivity {
 
     private boolean mScanning;

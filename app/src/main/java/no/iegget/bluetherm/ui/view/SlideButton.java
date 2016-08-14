@@ -1,4 +1,4 @@
-package no.iegget.bluetherm.utils;
+package no.iegget.bluetherm.ui.view;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -6,9 +6,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.SeekBar;
 
-/**
- * Created by iver on 26/04/16.
- */
 public class SlideButton extends SeekBar {
 
     private Drawable thumb;
@@ -51,5 +48,9 @@ public class SlideButton extends SeekBar {
 
     public void setSlideButtonListener(SlideButtonListener listener) {
         this.listener = listener;
+    }
+
+    public interface SlideButtonListener {
+        void handleSlide();
     }
 }

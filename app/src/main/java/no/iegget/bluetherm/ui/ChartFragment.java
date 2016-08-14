@@ -1,4 +1,4 @@
-package no.iegget.bluetherm;
+package no.iegget.bluetherm.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -20,11 +20,9 @@ import org.greenrobot.eventbus.Subscribe;
 import java.util.ArrayList;
 import java.util.List;
 
+import no.iegget.bluetherm.R;
 import no.iegget.bluetherm.utils.Constants;
 
-/**
- * Created by iver on 23/04/16.
- */
 public class ChartFragment extends Fragment {
 
     LineChart chart;

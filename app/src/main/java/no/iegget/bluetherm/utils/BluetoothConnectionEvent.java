@@ -1,8 +1,5 @@
 package no.iegget.bluetherm.utils;
 
-/**
- * Created by iver on 24/04/16.
- */
 public class BluetoothConnectionEvent {
 
     private String name;

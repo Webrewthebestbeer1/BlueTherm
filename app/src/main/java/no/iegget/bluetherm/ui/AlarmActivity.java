@@ -1,6 +1,5 @@
-package no.iegget.bluetherm;
+package no.iegget.bluetherm.ui;
 
-import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,13 +15,11 @@ import android.view.WindowManager;
 
 import java.io.IOException;
 
+import no.iegget.bluetherm.MainActivity;
+import no.iegget.bluetherm.R;
 import no.iegget.bluetherm.utils.Constants;
-import no.iegget.bluetherm.utils.SlideButton;
-import no.iegget.bluetherm.utils.SlideButtonListener;
+import no.iegget.bluetherm.ui.view.SlideButton;
 
-/**
- * Created by iver on 25/04/16.
- */
 public class AlarmActivity extends AppCompatActivity {
 
     Vibrator mVibrator;
@@ -58,7 +55,7 @@ public class AlarmActivity extends AppCompatActivity {
 
 
         SlideButton dismissButton = (SlideButton) findViewById(R.id.dismiss);
-        dismissButton.setSlideButtonListener(new SlideButtonListener() {
+        dismissButton.setSlideButtonListener(new SlideButton.SlideButtonListener() {
             @Override
             public void handleSlide() {
                 Intent mainIntent = new Intent(getApplicationContext(), MainActivity.class);

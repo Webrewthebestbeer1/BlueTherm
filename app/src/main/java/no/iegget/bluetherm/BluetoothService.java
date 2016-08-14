@@ -8,7 +8,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
@@ -34,9 +33,6 @@ import java.util.concurrent.TimeUnit;
 import no.iegget.bluetherm.utils.BluetoothConnectionEvent;
 import no.iegget.bluetherm.utils.Constants;
 
-/**
- * Created by iver on 24/04/16.
- */
 public class BluetoothService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private BluetoothAdapter mBluetoothAdapter;
@@ -88,7 +84,7 @@ public class BluetoothService extends Service implements SharedPreferences.OnSha
             public void run() {
                 sendCommand(GET_TEMPERATURE_COMMAND);
             }
-        }, 0, Constants.READING_TICK, TimeUnit.MILLISECONDS);
+        }, 0, Constants.READING_TICK_MS, TimeUnit.MILLISECONDS);
     }
 
 
