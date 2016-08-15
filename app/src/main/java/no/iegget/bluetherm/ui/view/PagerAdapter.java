@@ -5,7 +5,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import no.iegget.bluetherm.ui.ChartFragment;
-import no.iegget.bluetherm.ui.GeneralFragment;
+import no.iegget.bluetherm.ui.ControlsFragment;
 
 public class PagerAdapter extends FragmentStatePagerAdapter {
 
@@ -20,7 +20,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
     public Fragment getItem(int position) {
         switch (position) {
             case 0:
-                return new GeneralFragment();
+                return new ControlsFragment();
             case 1:
                 return new ChartFragment();
             default:

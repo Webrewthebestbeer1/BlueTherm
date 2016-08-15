@@ -24,4 +24,7 @@
     <string name="ascending">Ascending</string>
     <string name="degrees_celsius">%.1f°C</string>
     <string name="exit">Exit</string>
+    <string name="no_bluetooth_message">This app only works on devices with Bluetooth</string>
+    <string name="no_bluetooth_title">No Bluetooth available</string>
+    <string name="select_sound_title">Select ringtone for alarms:</string>
 </resources>
