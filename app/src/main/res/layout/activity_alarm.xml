@@ -44,8 +44,7 @@
             android:clickable="false"
             android:max="100"
             android:progressDrawable="@android:color/transparent"
-            android:thumb="@mipmap/ic_fa_arrow_circle_o_right_1024_0_eeeeee_none" >
-        </no.iegget.bluetherm.ui.view.SlideButton>
+            android:thumb="@drawable/ic_navigate_next_white_24dp" />
 
     </LinearLayout>
 

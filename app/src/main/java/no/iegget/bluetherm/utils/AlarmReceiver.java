@@ -1,4 +1,4 @@
-package no.iegget.bluetherm;
+package no.iegget.bluetherm.utils;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

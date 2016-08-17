@@ -1,10 +1,10 @@
 package no.iegget.bluetherm;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,7 +16,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -24,13 +23,27 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.github.mikephil.charting.data.Entry;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+
+import java.util.Collections;
+
+import no.iegget.bluetherm.ui.AlarmActivity;
+import no.iegget.bluetherm.ui.ChartFragment;
 import no.iegget.bluetherm.ui.ControlsFragment;
-import no.iegget.bluetherm.ui.view.PagerAdapter;
 import no.iegget.bluetherm.ui.DeviceScanActivity;
-import no.iegget.bluetherm.utils.Constants;
+import no.iegget.bluetherm.ui.view.PagerAdapter;
+import no.iegget.bluetherm.utils.TemperaturePoint;
 
 public class MainActivity extends AppCompatActivity implements
-        ControlsFragment.ControlsFragmentListener {
+        ControlsFragment.ControlsFragmentListener,
+        ChartFragment.ChartFragmentListener {
+
+    public static final int REQUEST_ENABLE_BT = 1;
+    public static final int REQUEST_SCAN_FOR_DEVICES = 2;
+    public static final int REQUEST_RINGTONE = 999;
+    public static final String SHARED_PREFERENCES_NAME = "BLUETHERM";
 
     private Toolbar toolbar;
     private TabLayout tabLayout;
@@ -46,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements
             BluetoothService.LocalBinder binder = (BluetoothService.LocalBinder) service;
             bluetoothService = binder.getService();
             bound = true;
-            //bluetoothService.setDesiredTemperature(setDesiredTemperature);
         }
 
         @Override
@@ -71,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements
                 .setIcon(R.drawable.ic_settings_white_24dp)
         );
         tabLayout.addTab(tabLayout.newTab()
-                .setText("Graph")
+                .setText("Chart")
                 .setIcon(R.drawable.ic_timeline_white_24dp)
         );
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
@@ -104,36 +116,39 @@ public class MainActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        Intent enableBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         if (bluetoothAdapter == null) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.no_bluetooth_title)
-                    .setMessage(R.string.no_bluetooth_message)
-                    .setCancelable(false)
-                    .setPositiveButton(R.string.exit, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            exitApplication();
-                        }
-                    })
-                    .show();
-
+            alertNoBluetoothAvailable();
         }
         else if (!bluetoothAdapter.isEnabled()) {
-            startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
+            startActivityForResult(enableBluetooth, REQUEST_ENABLE_BT);
         }
         else if (bluetoothAdapter.isEnabled()) {
             // use device from shared preferences
-            if (!getAddressFromSharedPreferences().equals(Constants.NO_ADDRESS)) {
+            if (!getAddressFromSharedPreferences().equals(BluetoothService.NO_ADDRESS)) {
                 Log.i("Main", "using address " + getAddressFromSharedPreferences());
                 bindService(bluetoothServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
             // scan for devices
             } else {
                 Log.i("Main", "no device in shared preferences. starting scan");
                 Intent scanIntent = new Intent(this, DeviceScanActivity.class);
-                startActivityForResult(scanIntent, Constants.SCAN_FOR_DEVICES);
+                startActivityForResult(scanIntent, REQUEST_SCAN_FOR_DEVICES);
             }
         }
+    }
+
+    private void alertNoBluetoothAvailable() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.no_bluetooth_title)
+                .setMessage(R.string.no_bluetooth_message)
+                .setCancelable(false)
+                .setPositiveButton(R.string.exit, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        exitApplication();
+                    }
+                })
+                .show().setCanceledOnTouchOutside(false);
     }
 
     @Override
@@ -152,16 +167,18 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void exitApplication() {
+        if (bound)
+            bluetoothService.cancelNotifications();
         this.finish();
         System.exit(0);
     }
 
     private String getAddressFromSharedPreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences(
-                Constants.SHARED_PREFERENCES_NAME,
+                SHARED_PREFERENCES_NAME,
                 Context.MODE_PRIVATE
         );
-        return sharedPreferences.getString(Constants.DEVICE_ADDRESS, Constants.NO_ADDRESS);
+        return sharedPreferences.getString(BluetoothService.DEVICE_ADDRESS, BluetoothService.NO_ADDRESS);
     }
 
     @Override
@@ -190,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false);
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION);
-        startActivityForResult(intent, Constants.REQUEST_RINGTONE);
+        startActivityForResult(intent, REQUEST_RINGTONE);
     }
 
     private void forgetDevice() {
@@ -206,8 +223,8 @@ public class MainActivity extends AppCompatActivity implements
                 .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        SharedPreferences sharedPref = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
-                        sharedPref.edit().remove(Constants.DEVICE_ADDRESS).apply();
+                        SharedPreferences sharedPref = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+                        sharedPref.edit().remove(BluetoothService.DEVICE_ADDRESS).commit();
                         Intent mStartActivity = new Intent(getApplicationContext(), MainActivity.class);
                         int mPendingIntentId = 123456;
                         PendingIntent mPendingIntent = PendingIntent.getActivity(getApplicationContext(), mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -224,30 +241,51 @@ public class MainActivity extends AppCompatActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            if (requestCode == Constants.REQUEST_RINGTONE) {
+            if (requestCode == REQUEST_RINGTONE) {
                 Uri uri = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
                 if (uri != null) {
                     String ringTonePath = uri.toString();
                     SharedPreferences sharedPreferences = getSharedPreferences(
-                            Constants.SHARED_PREFERENCES_NAME,
+                            SHARED_PREFERENCES_NAME,
                             Context.MODE_PRIVATE
                     );
                     sharedPreferences.edit()
-                            .putString(Constants.RINGTONE_URI, ringTonePath).apply();
+                            .putString(AlarmActivity.RINGTONE_URI, ringTonePath).apply();
                 }
             }
         }
     }
 
     @Override
-    public void setAlarmAscending(boolean ascending) {
+    public void setDirection(int direction) {
         if (bound)
-            bluetoothService.setAscending(ascending);
+            bluetoothService.setDirection(direction);
     }
 
     @Override
     public void onDesiredTemperatureChanged(float temperature) {
         if (bound)
             bluetoothService.setDesiredTemperature(temperature);
+    }
+
+    @Override
+    public BluetoothDevice getDevice() {
+        if (bound)
+            return bluetoothService.getDevice();
+        return null;
+    }
+
+    @Override
+    public int getDeviceState() {
+        if (bound)
+            return bluetoothService.getDeviceState();
+        else return 0;
+    }
+
+    @Override
+    public CircularFifoQueue<TemperaturePoint> getEntries() {
+        if (bound)
+            return bluetoothService.getEntries();
+        return new CircularFifoQueue<>();
     }
 }

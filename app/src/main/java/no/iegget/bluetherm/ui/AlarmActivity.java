@@ -15,34 +15,63 @@ import android.view.WindowManager;
 
 import java.io.IOException;
 
+import no.iegget.bluetherm.BluetoothService;
 import no.iegget.bluetherm.MainActivity;
 import no.iegget.bluetherm.R;
-import no.iegget.bluetherm.utils.Constants;
 import no.iegget.bluetherm.ui.view.SlideButton;
 
 public class AlarmActivity extends AppCompatActivity {
 
-    Vibrator mVibrator;
-    MediaPlayer mMediaPlayer;
+    public static final String RINGTONE_URI = "RINGTONE_URI";
+
+    private Vibrator mVibrator;
+    private MediaPlayer mMediaPlayer;
+    private SlideButton dismissSlider;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
-        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        mVibrator.vibrate(1000000000);
         setContentView(R.layout.activity_alarm);
-        //TextView desiredTemperatureText = (TextView) findViewById(R.id.desired_temperature);
-        SharedPreferences sharedPref = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
-        //desiredTemperatureText.setText(String.valueOf(sharedPref.getFloat(Constants.DESIRED_TEMPERATURE, 50F)));
-        sharedPref.edit().putBoolean(Constants.ALARM_ENABLED, false).commit();
+        bindViews();
+        setWindowFlags();
+        setupVibrator();
+        disableAlarm();
+        playAlarmSound();
+        setupDismissSlider();
+    }
 
-        String defaultAlertSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString();
-        Uri alertSound = Uri.parse(sharedPref.getString(Constants.RINGTONE_URI, defaultAlertSound));
+    private void bindViews() {
+        dismissSlider = (SlideButton) findViewById(R.id.dismiss);
+    }
+
+    private void setupDismissSlider() {
+        dismissSlider.setSlideButtonListener(new SlideButton.SlideButtonListener() {
+            @Override
+            public void handleSlide() {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }
+        });
+    }
+
+    private void playAlarmSound() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(MainActivity.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+
+        String defaultAlertSound =
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString();
+        Uri alertSound = Uri.parse(sharedPreferences.getString(
+                RINGTONE_URI,
+                defaultAlertSound
+        ));
+
         mMediaPlayer = new MediaPlayer();
         try {
             mMediaPlayer.setDataSource(this, alertSound);
-            final AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            final AudioManager audioManager =
+                    (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             if (audioManager.getStreamVolume(AudioManager.STREAM_RING) != 0) {
                 mMediaPlayer.setAudioStreamType(AudioManager.STREAM_RING);
                 mMediaPlayer.setLooping(true);
@@ -52,18 +81,26 @@ public class AlarmActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    private void disableAlarm() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences(MainActivity.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(BluetoothService.ALARM_ENABLED, false).apply();
+    }
 
-        SlideButton dismissButton = (SlideButton) findViewById(R.id.dismiss);
-        dismissButton.setSlideButtonListener(new SlideButton.SlideButtonListener() {
-            @Override
-            public void handleSlide() {
-                Intent mainIntent = new Intent(getApplicationContext(), MainActivity.class);
-                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(mainIntent);
-                finish();
-            }
-        });
+    private void setupVibrator() {
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        mVibrator.vibrate(1000000000);
+    }
+
+    private void setWindowFlags() {
+        getWindow().addFlags(
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                        | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                        | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                        | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
     }
 
     @Override

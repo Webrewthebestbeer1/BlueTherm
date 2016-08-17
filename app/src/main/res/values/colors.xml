@@ -5,4 +5,8 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorLight">#EEFFFF</color>
     <color name="colorRipple">#BBB</color>
+
+    <color name="blackText">#202020</color>
+    <color name="redText">#FF0000</color>
+    <color name="disconnectedLedColor">#FF0000</color>
 </resources>

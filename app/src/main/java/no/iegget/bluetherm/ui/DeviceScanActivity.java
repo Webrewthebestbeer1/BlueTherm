@@ -16,7 +16,6 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -28,25 +27,22 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import no.iegget.bluetherm.BluetoothService;
+import no.iegget.bluetherm.MainActivity;
 import no.iegget.bluetherm.R;
-import no.iegget.bluetherm.utils.Constants;
 
 public class DeviceScanActivity extends AppCompatActivity {
 
@@ -223,25 +219,6 @@ public class DeviceScanActivity extends AppCompatActivity {
         return true;
     }
 
-    private void showMissingPermissionsDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.missing_permissions)
-                .setMessage(R.string.permissions_error_message)
-                .setPositiveButton(R.string.open_app_settings, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        openAppSettings();
-                    }
-                })
-                .setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                })
-                .show().setCanceledOnTouchOutside(false);
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -400,11 +377,11 @@ public class DeviceScanActivity extends AppCompatActivity {
 
     private void storeAddressInSharedPreferences(String address) {
         SharedPreferences sharedPref = this.getSharedPreferences(
-                Constants.SHARED_PREFERENCES_NAME,
+                MainActivity.SHARED_PREFERENCES_NAME,
                 Context.MODE_PRIVATE
         );
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(Constants.DEVICE_ADDRESS, address);
+        editor.putString(BluetoothService.DEVICE_ADDRESS, address);
         editor.apply();
     }
 }
