@@ -36,6 +36,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import no.iegget.bluetherm.utils.AlarmReceiver;
+import no.iegget.bluetherm.utils.NotificationUtil;
 import no.iegget.bluetherm.utils.TemperaturePoint;
 
 public class BluetoothService extends Service implements
@@ -74,8 +75,6 @@ public class BluetoothService extends Service implements
 
     private final IBinder mBinder = new LocalBinder();
 
-    public static final int NOTIFICATION_ID = 1;
-    public static final int DISCONNECTED_NOTIFICATION_ID = 2;
     public static final String DEVICE_STATE_CHANGED = "DEVICE_STATE_CHANGED";
     public static final String TEMPERATURE_UPDATED = "TEMPERATURE_UPDATED";
     public static final String CURRENT_TEMPERATURE = "CURRENT_TEMPERATURE";
@@ -116,7 +115,7 @@ public class BluetoothService extends Service implements
         if (isShowingDisconnectedNotification) {
             NotificationManager notificationManager =
                     (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.cancel(DISCONNECTED_NOTIFICATION_ID);
+            notificationManager.cancel(NotificationUtil.DISCONNECTED_NOTIFICATION_ID);
             isShowingDisconnectedNotification = false;
         }
     }
@@ -127,7 +126,7 @@ public class BluetoothService extends Service implements
             isFetching = false;
         }
         if (!isShowingDisconnectedNotification) {
-            showDisconnectedNotification();
+            NotificationUtil.showDisconnectedNotification(this);
             isShowingDisconnectedNotification = true;
         }
         timerTask.schedule(new ReconnectTask(), READING_TICK_MS);
@@ -246,7 +245,9 @@ public class BluetoothService extends Service implements
         Intent intent = new Intent(TEMPERATURE_UPDATED);
         intent.putExtra(CURRENT_TEMPERATURE, temperature);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-        updateNotification();
+        NotificationUtil.updateNotification(
+                this, currentTemperature, deviceAddress, desiredTemperature, alarmEnabled
+        );
     }
 
     public CircularFifoQueue<TemperaturePoint> getEntries() {
@@ -297,104 +298,6 @@ public class BluetoothService extends Service implements
 
     public int getDeviceState() {
         return deviceState;
-    }
-
-    private void showDisconnectedNotification() {
-        Log.w("LOL", "disc. notif.!");
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-        Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_warning_white_24dp)
-                .setContent(getNotificationContentDisconnected())
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(false)
-                .setVibrate(new long[]{0, 1000})
-                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                .setLights(
-                        ContextCompat.getColor(this, R.color.disconnectedLedColor),
-                        1000,
-                        500
-                )
-                .build();
-        notification.flags = getNotificationFlags();
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(DISCONNECTED_NOTIFICATION_ID, notification);
-    }
-
-    private void updateNotification() {
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-        Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_timeline_white_24dp)
-                .setContent(getNotificationContentConnected())
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(false)
-                .setContent(getNotificationContentConnected())
-                .setStyle(new NotificationCompat.BigTextStyle())
-                .build();
-        notification.bigContentView = getNotificationContentConnectedBig();
-        notification.flags = getNotificationFlags();
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(NOTIFICATION_ID, notification);
-    }
-
-    private int getNotificationFlags() {
-        return Notification.FLAG_NO_CLEAR
-                | Notification.DEFAULT_LIGHTS
-                | Notification.DEFAULT_VIBRATE
-                | Notification.DEFAULT_SOUND;
-    }
-
-    private RemoteViews getNotificationContentDisconnected() {
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.notification);
-        remoteViews.setTextViewText(R.id.current_status, getString(R.string.disconnected));
-        remoteViews.setTextColor(
-                R.id.current_status,
-                ContextCompat.getColor(this, R.color.redText)
-        );
-        return remoteViews;
-    }
-
-    private RemoteViews getNotificationContentConnected() {
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.notification);
-        String temperature = String.format(
-                getString(R.string.notification_current_temperature),
-                String.valueOf(currentTemperature)
-        );
-        remoteViews.setTextViewText(R.id.current_status, temperature);
-        return remoteViews;
-    }
-
-    private RemoteViews getNotificationContentConnectedBig() {
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.notification_big);
-        String temperature = String.format(
-                getString(R.string.notification_current_temperature),
-                String.valueOf(currentTemperature)
-        );
-        String connectedTo = String.format(
-                getString(R.string.notification_connected_to),
-                device.getAddress()
-        );
-        String alarmSetFor = String.format(
-                getString(R.string.notification_alarm_set_for),
-                desiredTemperature
-        );
-        remoteViews.setTextViewText(R.id.current_status, temperature);
-        remoteViews.setTextViewText(R.id.connected_to, connectedTo);
-        if (alarmEnabled)
-            remoteViews.setTextViewText(R.id.alarm_temperature, alarmSetFor);
-        else remoteViews.setTextViewText(R.id.alarm_temperature, null);
-        return remoteViews;
-    }
-
-    public void cancelNotifications() {
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.cancelAll();
     }
 
     class FetchTemperatureTask extends TimerTask {

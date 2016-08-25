@@ -22,7 +22,9 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import no.iegget.bluetherm.BluetoothService;
@@ -92,10 +94,11 @@ public class ChartFragment extends Fragment {
 
     private void buildChart() {
         List<Entry> temperatureEntries = new ArrayList<>();
-        List<Long> timeEntries = new ArrayList<>();
+        final List<Long> timeEntries = new ArrayList<>();
+        int xIndex = 0;
         for (TemperaturePoint entry : listener.getEntries()) {
             temperatureEntries.add(new Entry(
-                    entry.getTime(),
+                    xIndex++,
                     entry.getTemperature()
             ));
             timeEntries.add(entry.getTime());
@@ -108,7 +111,8 @@ public class ChartFragment extends Fragment {
         chart.getXAxis().setValueFormatter(new AxisValueFormatter() {
             @Override
             public String getFormattedValue(float value, AxisBase axis) {
-                return "lol";
+                if (timeEntries.size() == 0) return null;
+                return getTimeStamp(timeEntries.get((int) value % timeEntries.size()));
             }
 
             @Override
@@ -118,6 +122,12 @@ public class ChartFragment extends Fragment {
         });
         chart.setData(data);
         chart.invalidate();
+    }
+
+    private String getTimeStamp(long date) {
+        return SimpleDateFormat
+                .getTimeInstance(SimpleDateFormat.SHORT)
+                .format(new Date(date));
     }
 
     public interface ChartFragmentListener {

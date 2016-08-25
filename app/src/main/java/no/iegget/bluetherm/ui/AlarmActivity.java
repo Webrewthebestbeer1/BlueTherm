@@ -8,6 +8,7 @@ import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -23,7 +24,7 @@ import no.iegget.bluetherm.ui.view.SlideButton;
 public class AlarmActivity extends AppCompatActivity {
 
     public static final String RINGTONE_URI = "RINGTONE_URI";
-
+    public static final int ALARM_SHUTDOWN_DELAY_MS = 30_000;
     private Vibrator mVibrator;
     private MediaPlayer mMediaPlayer;
     private SlideButton dismissSlider;
@@ -51,7 +52,7 @@ public class AlarmActivity extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
-                finish();
+                stopSelf(false);
             }
         });
     }
@@ -81,6 +82,13 @@ public class AlarmActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                stopSelf(true);
+            }
+        }, ALARM_SHUTDOWN_DELAY_MS);
     }
 
     private void disableAlarm() {
@@ -101,6 +109,10 @@ public class AlarmActivity extends AppCompatActivity {
                         | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                         | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                         | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
+    }
+
+    private void stopSelf(boolean showNotification) {
+        finish();
     }
 
     @Override

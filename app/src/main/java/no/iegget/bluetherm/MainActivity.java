@@ -34,6 +34,7 @@ import no.iegget.bluetherm.ui.ChartFragment;
 import no.iegget.bluetherm.ui.ControlsFragment;
 import no.iegget.bluetherm.ui.DeviceScanActivity;
 import no.iegget.bluetherm.ui.view.PagerAdapter;
+import no.iegget.bluetherm.utils.NotificationUtil;
 import no.iegget.bluetherm.utils.TemperaturePoint;
 
 public class MainActivity extends AppCompatActivity implements
@@ -168,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void exitApplication() {
         if (bound)
-            bluetoothService.cancelNotifications();
+            NotificationUtil.cancelNotifications(this);
         this.finish();
         System.exit(0);
     }
